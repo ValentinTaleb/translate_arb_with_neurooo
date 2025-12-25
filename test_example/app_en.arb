@@ -1,0 +1,14 @@
+{
+  "@@locale": "en",
+  "hello": "Hello",
+  "@hello": {
+    "description": "Greeting message"
+  },
+  "welcome": "Welcome to our app",
+  "@welcome": {
+    "description": "Welcome message shown on first screen"
+  },
+  "settings": "Settings",
+  "logout": "Logout",
+  "confirm": "Are you sure you want to continue?"
+}

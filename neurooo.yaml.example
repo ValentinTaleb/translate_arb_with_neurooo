@@ -1,0 +1,14 @@
+# Configuration file for Neurooo Translation Tool
+# Copy this file to neurooo.yaml and fill in your API credentials
+
+# Your Neurooo.com API key (get it from https://neurooo.com)
+api_key: your_api_key_here
+
+# Optional: Additional parameters to send with each request
+params:
+  # Translation engine (optional). Check available engines at https://neurooo.com/fr/docs/api
+  engine: openai-4omini
+  # Tone (optional): informal, auto, formal
+  # tone: auto
+  # Context (optional): Additional context for better translations
+  # context: "Mobile app interface"
