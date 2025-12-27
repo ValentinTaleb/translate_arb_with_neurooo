@@ -33,40 +33,69 @@ class NeuroooTranslator {
   }
 
   /// Translates multiple texts in a single request (batch translation)
+  /// Handles API constraints: max 12500 characters and max 100 items per batch
   Future<Map<String, String>> translateBatch(
     Map<String, String> texts,
     String sourceLocale,
     String targetLocale,
   ) async {
-    // Prepare texts for batch processing
-    final sources = texts.values.toList();
-    final keys = texts.keys.toList();
+    const int maxChars = 12500;
+    const int maxItems = 100;
 
-    final body = {
-      'sources': sources,
-      'target_language_code': targetLocale,
-      'source_language_code': sourceLocale,
-      ...?config.additionalParams,
-    };
+    final result = <String, String>{};
+    final entries = texts.entries.toList();
 
-    final response = await http.post(
-      Uri.parse('${endpoint}batch_translate'),
-      headers: {'Content-Type': 'application/json', 'x-api-key': config.apiKey},
-      body: jsonEncode(body),
-    );
+    int currentIndex = 0;
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final targets = data['targets'] as List<dynamic>;
+    while (currentIndex < entries.length) {
+      final batch = <MapEntry<String, String>>[];
+      int currentCharCount = 0;
 
-      // Reconstruct the map with original keys
-      final result = <String, String>{};
-      for (var i = 0; i < keys.length; i++) {
-        result[keys[i]] = targets[i] as String;
+      // Build a batch respecting both constraints
+      while (currentIndex < entries.length && batch.length < maxItems) {
+        final entry = entries[currentIndex];
+        final entryLength = entry.value.length;
+
+        // Check if adding this entry would exceed character limit
+        if (currentCharCount + entryLength > maxChars && batch.isNotEmpty) {
+          break;
+        }
+
+        batch.add(entry);
+        currentCharCount += entryLength;
+        currentIndex++;
       }
-      return result;
-    } else {
-      throw Exception('Batch translation API error: ${response.statusCode} - ${response.body}');
+
+      // Translate current batch
+      final batchKeys = batch.map((e) => e.key).toList();
+      final batchSources = batch.map((e) => e.value).toList();
+
+      final body = {
+        'sources': batchSources,
+        'target_language_code': targetLocale,
+        'source_language_code': sourceLocale,
+        ...?config.additionalParams,
+      };
+
+      final response = await http.post(
+        Uri.parse('${endpoint}batch_translate'),
+        headers: {'Content-Type': 'application/json', 'x-api-key': config.apiKey},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final targets = data['targets'] as List<dynamic>;
+
+        // Add batch results to final result
+        for (var i = 0; i < batchKeys.length; i++) {
+          result[batchKeys[i]] = targets[i] as String;
+        }
+      } else {
+        throw Exception('Batch translation API error: ${response.statusCode} - ${response.body}');
+      }
     }
+
+    return result;
   }
 }
