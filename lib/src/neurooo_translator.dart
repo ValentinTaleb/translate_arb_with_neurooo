@@ -6,8 +6,9 @@ import 'config.dart';
 class NeuroooTranslator {
   final TranslationConfig config;
   static const String endpoint = 'https://neurooo.com/api/v1/';
+  final bool verbose;
 
-  NeuroooTranslator(this.config);
+  NeuroooTranslator({required this.config, this.verbose = false});
 
   /// Translates a text from the source language to the target language
   Future<String> translate(String text, String sourceLocale, String targetLocale) async {
@@ -42,10 +43,13 @@ class NeuroooTranslator {
     const int maxChars = 12500;
     const int maxItems = 100;
 
+    _log('Starting batch translation: ${texts.length} total items');
+
     final result = <String, String>{};
     final entries = texts.entries.toList();
 
     int currentIndex = 0;
+    int batchNumber = 0;
 
     while (currentIndex < entries.length) {
       final batch = <MapEntry<String, String>>[];
@@ -58,6 +62,7 @@ class NeuroooTranslator {
 
         // Check if adding this entry would exceed character limit
         if (currentCharCount + entryLength > maxChars && batch.isNotEmpty) {
+          _log('Batch ${batchNumber + 1}: Character limit would be exceeded, splitting batch');
           break;
         }
 
@@ -65,6 +70,9 @@ class NeuroooTranslator {
         currentCharCount += entryLength;
         currentIndex++;
       }
+
+      batchNumber++;
+      _log('Batch $batchNumber: Translating ${batch.length} items (${currentCharCount} characters)');
 
       // Translate current batch
       final batchKeys = batch.map((e) => e.key).toList();
@@ -83,19 +91,31 @@ class NeuroooTranslator {
         body: jsonEncode(body),
       );
 
+      _log('Batch $batchNumber: API response status ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final targets = data['targets'] as List<dynamic>;
+
+        _log('Batch $batchNumber: Received ${targets.length} translations');
 
         // Add batch results to final result
         for (var i = 0; i < batchKeys.length; i++) {
           result[batchKeys[i]] = targets[i] as String;
         }
       } else {
+        _log('Batch $batchNumber: Error - ${response.body}');
         throw Exception('Batch translation API error: ${response.statusCode} - ${response.body}');
       }
     }
 
+    _log('Batch translation complete: ${result.length} items translated in $batchNumber batches');
     return result;
+  }
+
+  void _log(String message) {
+    if (verbose) {
+      print(message);
+    }
   }
 }

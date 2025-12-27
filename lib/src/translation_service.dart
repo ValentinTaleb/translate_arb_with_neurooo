@@ -10,7 +10,10 @@ class TranslationService {
   TranslationService({required this.translator, this.verbose = false});
 
   factory TranslationService.fromConfig(TranslationConfig config, {bool verbose = false}) {
-    return TranslationService(translator: NeuroooTranslator(config), verbose: verbose);
+    return TranslationService(
+      translator: NeuroooTranslator(config: config, verbose: verbose),
+      verbose: verbose,
+    );
   }
 
   /// Translates an .arb file to one or more target languages
