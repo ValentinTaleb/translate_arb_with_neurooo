@@ -1,6 +1,6 @@
 name: neurooo
 description: A CLI tool to automatically translate Flutter .arb files using Neurooo APIs.
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/ValentinTaleb/translate_arb_with_neurooo
 
 environment:
