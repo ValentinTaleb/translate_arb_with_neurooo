@@ -47,7 +47,7 @@ dart run neurooo -s lib/l10n/app_en.arb -t fr,es,de
 
 Translate to French, Spanish, and German:
 ```bash
-dart run neurooo -s lib/l10n/app_en.arb -t fr,es,de
+dart run neurooo -s lib/l10n/app_en.arb -f en -t fr,es,de
 ```
 
 Translate to Japanese with verbose mode:
@@ -57,7 +57,7 @@ dart run neurooo --source app_en.arb --from en --to ja --verbose
 
 Translate only missing keys (preserves existing translations):
 ```bash
-dart run neurooo -s lib/l10n/app_en.arb -t fr --only-missing
+dart run neurooo -s lib/l10n/app_en.arb -f en -t fr --only-missing
 ```
 
 Use cases for `--only-missing` mode:
